@@ -84,7 +84,7 @@ class Settings(BaseSettings):
     MAX_LOGIN_ATTEMPTS: int = Field(default=5, description="Maximum login attempts before lockout")
 
     # Auto-Update Configuration
-    CURRENT_VERSION: str = Field(default="1.0.4", description="Current client version")
+    CURRENT_VERSION: str = Field(default="1.0.5", description="Current client version")
     UPDATE_URL: str = Field(
         default="https://api.github.com/repos/pinan1225-byte/PasswordProject/releases/latest",
         description="Update check endpoint"
