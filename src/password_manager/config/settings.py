@@ -86,7 +86,7 @@ class Settings(BaseSettings):
     # Auto-Update Configuration
     CURRENT_VERSION: str = Field(default="1.0.0", description="Current client version")
     UPDATE_URL: str = Field(
-        default="https://api.github.com/repos/chennanxing/PasswordProject/releases/latest",
+        default="https://api.github.com/repos/pinan1225-byte/PasswordProject/releases/latest",
         description="Update check endpoint"
     )
 
