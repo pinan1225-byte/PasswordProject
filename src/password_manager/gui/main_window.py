@@ -2889,13 +2889,29 @@ class UpdateThread(QThread):
             new_version = tag_name.lstrip("v")
             changelog = data.get("body", "无更新日志。")
             
-            # 寻找 dist.zip 文件作为下载目标
+            # 寻找适合当前平台(macOS/Windows)的更新压缩包
+            import sys
             download_url = ""
+            is_mac = sys.platform == "darwin"
+            is_win = sys.platform == "win32"
+            
+            # 优先匹配特定平台的 zip 包 (如 密码管家_mac_dist.zip 或 _mac_dist.zip)
             for asset in data.get("assets", []):
-                name = asset.get("name", "")
-                if "dist.zip" in name or ".zip" in name:
+                name = asset.get("name", "").lower()
+                if is_mac and "mac" in name and name.endswith(".zip"):
                     download_url = asset.get("browser_download_url", "")
                     break
+                elif is_win and "win" in name and name.endswith(".zip"):
+                    download_url = asset.get("browser_download_url", "")
+                    break
+            
+            # 如果没有找到精确的平台标识，则寻找任何 dist.zip 或 .zip 文件作为兜底
+            if not download_url:
+                for asset in data.get("assets", []):
+                    name = asset.get("name", "").lower()
+                    if "dist.zip" in name or name.endswith(".zip"):
+                        download_url = asset.get("browser_download_url", "")
+                        break
             
             if not download_url and data.get("assets"):
                 download_url = data["assets"][0].get("browser_download_url", "")
