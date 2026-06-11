@@ -65,6 +65,9 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
+
+
+    DATABASE_URL: Optional[str] = Field(default=None, description="Database URL (SQLite or MySQL)")
     MYSQL_HOST: str = Field(default="localhost", description="MySQL host")
     MYSQL_PORT: int = Field(default=3306, description="MySQL port")
     MYSQL_USER: str = Field(default="root", description="MySQL user")
@@ -136,7 +139,9 @@ class Settings(BaseSettings):
 
     @property
     def database_url(self) -> str:
-        """Construct MySQL database URL."""
+        """Construct database URL, prioritizing DATABASE_URL from env if set."""
+        if self.DATABASE_URL:
+            return self.DATABASE_URL
         return (
             f"mysql+pymysql://{self.MYSQL_USER}:{self.MYSQL_PASSWORD}"
             f"@{self.MYSQL_HOST}:{self.MYSQL_PORT}/{self.MYSQL_DATABASE}"

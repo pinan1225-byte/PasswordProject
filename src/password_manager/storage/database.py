@@ -33,16 +33,46 @@ class DatabaseManager:
 
     def initialize(self) -> None:
         """Initialize database connection and create tables."""
-        self._engine = create_engine(
-            self._database_url,
-            pool_pre_ping=True,
-            pool_recycle=3600,
-            echo=self.settings.is_development,
-        )
-
-        self._session_factory = sessionmaker(self._engine)
-
-        Base.metadata.create_all(self._engine)
+        try:
+            self._engine = create_engine(
+                self._database_url,
+                pool_pre_ping=True,
+                pool_recycle=3600,
+                echo=self.settings.is_development,
+            )
+            self._session_factory = sessionmaker(self._engine)
+            
+            # Verify the connection works
+            with self._engine.connect() as conn:
+                pass
+                
+            Base.metadata.create_all(self._engine)
+            self.is_sqlite_fallback = False
+        except Exception as e:
+            # Fall back to SQLite if the configured DB URL is a MySQL database
+            if "mysql" in self._database_url:
+                import os
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.warning(f"MySQL connection failed: {e}. Falling back to local SQLite database.")
+                
+                # Use home directory ~/.password_manager/password_vault.db
+                home_dir = os.path.expanduser("~")
+                db_dir = os.path.join(home_dir, ".password_manager")
+                os.makedirs(db_dir, exist_ok=True)
+                sqlite_path = os.path.abspath(os.path.join(db_dir, "password_vault.db")).replace("\\", "/")
+                self._database_url = f"sqlite:///{sqlite_path}"
+                
+                # Rebuild engine for SQLite
+                self._engine = create_engine(
+                    self._database_url,
+                    echo=self.settings.is_development,
+                )
+                self._session_factory = sessionmaker(self._engine)
+                Base.metadata.create_all(self._engine)
+                self.is_sqlite_fallback = True
+            else:
+                raise
 
     @contextmanager
     def get_session(self) -> Session:

@@ -83,6 +83,18 @@ class LoginWindow(QMainWindow):
             self.db_manager = DatabaseManager()
             self.db_manager.initialize()
             self.user_manager = UserManager(self.db_manager)
+            
+            # 如果 MySQL 连接失败自动降级到 SQLite，给予用户友好提示
+            if getattr(self.db_manager, "is_sqlite_fallback", False):
+                QMessageBox.information(
+                    self,
+                    "数据库自动降级提示",
+                    "系统检测到您的本地 MySQL 数据库服务未启动或未安装。\n\n"
+                    "为了保证软件正常运行，密码管家已为您【自动启用本地免安装 SQLite 数据库】。\n"
+                    "您的密码数据目前正安全加密保存在本地：\n"
+                    f"{self.db_manager._database_url.replace('sqlite:///', '')}\n\n"
+                    "如果您需要使用云端 MySQL 数据库，请确保本地 MySQL 服务已启动并在项目根目录的 .env 文件中配置好连接变量。"
+                )
         except Exception as e:
             QMessageBox.critical(self, "错误", f"数据库初始化失败:\n{str(e)}")
             sys.exit(1)
