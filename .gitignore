@@ -91,3 +91,7 @@ Jupyter
 Project specific
 password_vault.db
 *.enc
+
+# Temporary IDE / Agent outputs
+.trae/
+scratch/
